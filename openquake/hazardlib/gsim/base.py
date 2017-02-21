@@ -191,6 +191,7 @@ class ContextMaker(object):
                 distances = dist_dict[param]
             else:
                 distances = get_distances(rupture, site_collection.mesh, param)
+                dist_dict[param] = distances
             setattr(dctx, param, distances)
         return dctx
 
@@ -278,7 +279,7 @@ class ContextMaker(object):
             :class:`openquake.hazardlib.source.rupture.BaseProbabilisticRupture`
 
         :param distances:
-            An array of distances, one per site, or None
+            A dictionary {distance_type: distances}, possibly empty
 
         :returns:
             Tuple of three items: sites context, rupture context and
@@ -293,13 +294,13 @@ class ContextMaker(object):
             and distance parameters) is unknown.
         """
         rctx = self.make_rupture_context(rupture)
-        if distances is None:  # recompute sites and distances
-            sites, distances = self.get_closest(
-                site_collection, rupture, 'rjb')
+        if not distances:  # recompute sites and distances
+            sites, dists = self.get_closest(site_collection, rupture, 'rjb')
+            distances = {'rjb': dists}
         else:
             sites = site_collection
         sctx = self.make_sites_context(sites)
-        dctx = self.make_distances_context(sites, rupture, {'rjb': distances})
+        dctx = self.make_distances_context(sites, rupture, distances)
         return (sctx, rctx, dctx)
 
     def get_closest(self, sites, rupture, distance_type='rjb'):
