@@ -264,7 +264,7 @@ class ContextMaker(object):
             setattr(rctx, param, value)
         return rctx
 
-    def make_contexts(self, site_collection, rupture):
+    def make_contexts(self, site_collection, rupture, distances=None):
         """
         Filter the site collection with respect to the rupture and
         create context objects.
@@ -276,6 +276,9 @@ class ContextMaker(object):
             Instance of
             :class:`openquake.hazardlib.source.rupture.Rupture` or subclass of
             :class:`openquake.hazardlib.source.rupture.BaseProbabilisticRupture`
+
+        :param distances:
+            An array of distances, one per site, or None
 
         :returns:
             Tuple of three items: sites context, rupture context and
@@ -290,7 +293,11 @@ class ContextMaker(object):
             and distance parameters) is unknown.
         """
         rctx = self.make_rupture_context(rupture)
-        sites, distances = self.get_closest(site_collection, rupture, 'rjb')
+        if distances is None:  # recompute sites and distances
+            sites, distances = self.get_closest(
+                site_collection, rupture, 'rjb')
+        else:
+            sites = site_collection
         sctx = self.make_sites_context(sites)
         dctx = self.make_distances_context(sites, rupture, {'rjb': distances})
         return (sctx, rctx, dctx)

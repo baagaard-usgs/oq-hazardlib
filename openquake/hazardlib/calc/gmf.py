@@ -56,11 +56,14 @@ class GmfComputer(object):
     :param :class:`openquake.hazardlib.site.SiteCollection` sites:
         Sites of interest to calculate GMFs.
 
+    :param distances:
+        The distances from the rupture to each site (or None)
+
     :param imts:
-        a sorted list of Intensity Measure Type strings
+        A sorted list of Intensity Measure Type strings
 
     :param gsims:
-        a set of GSIM instances
+        A set of GSIM instances
 
     :param truncation_level:
         Float, number of standard deviations for truncation of the intensity
@@ -83,11 +86,12 @@ class GmfComputer(object):
     # with the same `gsim`. This ensures that different GMPE logic tree
     # realizations produce different numbers even in the case of sampling.
     # If all GMPEs are different the salt is 0 and the rupture seed is used.
-    def __init__(self, rupture, sites, imts, gsims,
+    def __init__(self, rupture, sites, distances, imts, gsims,
                  truncation_level=None, correlation_model=None, samples=0):
         assert sites, sites
         self.rupture = rupture
         self.sites = sites
+        self.distances = distances
         self.imts = [from_string(imt) for imt in imts]
         self.gsims = sorted(set(gsims))
         self.truncation_level = truncation_level
@@ -98,7 +102,7 @@ class GmfComputer(object):
         if hasattr(rupture, 'rupture'):
             rupture = rupture.rupture
             self.salt = collections.Counter()  # associate a salt to the gsims
-        self.ctx = ContextMaker(gsims).make_contexts(sites, rupture)
+        self.ctx = ContextMaker(gsims).make_contexts(sites, rupture, distances)
 
     def compute(self, gsim, num_events, seed=None):
         """
@@ -241,7 +245,7 @@ def ground_motion_fields(rupture, sites, imts, gsim, truncation_level,
         for all sites in the collection. First dimension represents
         sites and second one is for realizations.
     """
-    gc = GmfComputer(rupture, sites, [str(imt) for imt in imts], [gsim],
+    gc = GmfComputer(rupture, sites, None, [str(imt) for imt in imts], [gsim],
                      truncation_level, correlation_model)
     res = gc.compute(gsim, realizations, seed)
     return {imt: res[imti] for imti, imt in enumerate(gc.imts)}
