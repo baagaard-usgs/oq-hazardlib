@@ -150,10 +150,7 @@ def poe_map(src, s_sites, imtls, cmaker, trunclevel, ctx_mon, pne_mons,
             if bbs:
                 with disagg_mon:
                     sids = set(sctx.sites.sids)
-                    try:
-                        jb_dists = dctx.rjb
-                    except:
-                        import pdb; pdb.set_trace()
+                    jb_dists = dctx.rjb
                     closest_points = rup.surface.get_closest_points(
                         sctx.sites.mesh)
                     bs = [bb for bb in bbs if bb.site_id in sids]
