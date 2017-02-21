@@ -137,7 +137,7 @@ class BaseGMFCalcTestCase(unittest.TestCase):
         self.gsim = FakeGSIMInterIntraStdDevs(self)
         self.total_stddev_gsim = FakeGSIMTotalStdDev(self)
 
-        def make_contexts(gsim, sites, rupture):
+        def make_contexts(gsim, sites, rupture, distances):
             return sites.vs30, sites.z1pt0, sites.z2pt5
         self.orig_make_contexts = ContextMaker.make_contexts
         ContextMaker.make_contexts = make_contexts

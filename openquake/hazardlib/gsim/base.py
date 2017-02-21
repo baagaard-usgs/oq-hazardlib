@@ -160,7 +160,7 @@ class ContextMaker(object):
                 reqset.update(getattr(gsim, 'REQUIRES_' + req))
             setattr(self, 'REQUIRES_' + req, reqset)
 
-    def make_distances_context(self, site_collection, rupture, dist_dict=()):
+    def make_distances_context(self, site_collection, rupture, dist_dict={}):
         """
         Create distances context object for given site collection and rupture.
 
@@ -186,12 +186,11 @@ class ContextMaker(object):
             If any of declared required distance parameters is unknown.
         """
         dctx = DistancesContext()
-        for param in self.REQUIRES_DISTANCES | set(['rjb']):
-            if param in dist_dict:  # already computed distances
+        for param in self.REQUIRES_DISTANCES:
+            if param in dist_dict:  # rjb distances passed from make_contexts
                 distances = dist_dict[param]
             else:
                 distances = get_distances(rupture, site_collection.mesh, param)
-                dist_dict[param] = distances
             setattr(dctx, param, distances)
         return dctx
 
@@ -294,13 +293,13 @@ class ContextMaker(object):
             and distance parameters) is unknown.
         """
         rctx = self.make_rupture_context(rupture)
-        if not distances:  # recompute sites and distances
-            sites, dists = self.get_closest(site_collection, rupture, 'rjb')
-            distances = {'rjb': dists}
+        if distances is None:  # recompute sites and distances
+            sites, distances = self.get_closest(
+                site_collection, rupture, 'rjb')
         else:
             sites = site_collection
         sctx = self.make_sites_context(sites)
-        dctx = self.make_distances_context(sites, rupture, distances)
+        dctx = self.make_distances_context(sites, rupture, {'rjb': distances})
         return (sctx, rctx, dctx)
 
     def get_closest(self, sites, rupture, distance_type='rjb'):
