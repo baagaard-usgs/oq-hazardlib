@@ -186,12 +186,13 @@ class ContextMaker(object):
             If any of declared required distance parameters is unknown.
         """
         dctx = DistancesContext()
-        for param in self.REQUIRES_DISTANCES:
-            if param in dist_dict:  # rjb distances passed from make_contexts
-                distances = dist_dict[param]
+        for dist_type in self.REQUIRES_DISTANCES | set(['rjb']):
+            if dist_type in dist_dict:  # rjb passed from make_contexts
+                distances = dist_dict[dist_type]
             else:
-                distances = get_distances(rupture, site_collection.mesh, param)
-            setattr(dctx, param, distances)
+                distances = get_distances(
+                    rupture, site_collection.mesh, dist_type)
+            setattr(dctx, dist_type, distances)
         return dctx
 
     def make_sites_context(self, site_collection):
